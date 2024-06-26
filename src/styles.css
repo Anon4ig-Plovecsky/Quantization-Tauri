@@ -1,18 +1,21 @@
-.properties * {
-  display: grid;
-}
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   /* display: none; <- Crashes Chrome on hover */
   -webkit-appearance: none;
   margin: 0;
 }
+.main-page {
+  display: flex;;
+  justify-content: center;
+  align-items: center;
+}
 .row * {
   display: inline;
   text-align: center;
 }
-.properties__formula__input * {
-
+.properties {
+  text-align: center;
+  vertical-align: middle;
 }
 .properties__formula input {
   padding-left: 0.6em;
@@ -39,14 +42,13 @@ input::-webkit-inner-spin-button {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 1em;
 }
-.properties__form {
-  /*display: flex;*/
-  /*flex-direction: row;*/
-}
 .number-input {
-  /*background-color: red;*/
-  /*outline-color: red;*/
-  /*box-shadow: none;*/
+
+}
+.drawing-panel__canvas {
+  background-color: red;
+  min-height: 0;
+  min-width: 0;
 }
 
 /*.logo.vanilla:hover {*/

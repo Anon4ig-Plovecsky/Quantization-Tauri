@@ -16,3 +16,6 @@ window.addEventListener("DOMContentLoaded", () => {
     greet();
   });
 });
+
+// Creating a canvas and window change listener
+let drawingPanel = document.querySelector("#drawingPanel");

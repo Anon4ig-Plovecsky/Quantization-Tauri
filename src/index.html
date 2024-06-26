@@ -4,60 +4,65 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
+    <title>Quantization-Tauri</title>
     <script type="module" src="/main.js" defer></script>
   </head>
 
   <body>
-    <div class="properties">
-      <form class="properties__form">
-        <div class="properties__formula row">
-          <label>
-            <select class="properties__formula__select">
-              <option value="0" selected>sin(x + b)</option>
-              <option value="1">cos(x + b)</option>
-              <option value="2">sin(x) + b</option>
-              <option value="3">cos(x) + b</option>
-            </select>
-            <p>x = </p>
-            <div class="properties__formula__input">
-              <input class="properties__formula__input__x number-input" type="number" value="1"
-                     min="0.5" max="20" step="0.01" placeholder="Enter x...">
-              <button class="properties__formula__button button-minus">-</button>
-              <button class="properties__formula__button button-plus">+</button>
-            </div>
-            <p>b = </p>
-            <div class="properties__formula__input">
-              <input class="properties__formula__input__b number-input" type="number" value="1"
-                     min="0.5" max="20" step="0.01" placeholder="Enter b...">
-              <button class="properties__formula__button button-minus">-</button>
-              <button class="properties__formula__button button-plus">+</button>
-            </div>
-          </label>
-        </div>
-        <div class="properties__quantization-type">
-          <label>
-            <select class="properties__quantization-type__select">
-              <option value="upper">Ближайшее сверху значение</option>
-              <option value="lower">Ближайшее снизу значение</option>
-              <option value="closer">Ближайшее значение</option>
-            </select>
-          </label>
-        </div>
-        <div class="properties__quantization-step">
-          <label>
-            <input class="quantization-step__input number-input" type="number" value="1"
-                   min="0.5" max="20" step="0.01" />
-          </label>
-        </div>
-        <div class="properties__start-quantization">
-          <button class="properties__start-quantization__button"
-                  type="submit">Начать квантование
-          </button>
-        </div>
-      </form>
+    <div class="main-page">
+      <div class="properties">
+        <form class="properties__form">
+          <div class="properties__formula">
+            <label class="row">
+              <select class="properties__formula__select">
+                <option value="0" selected>sin(x + b)</option>
+                <option value="1">cos(x + b)</option>
+                <option value="2">sin(x) + b</option>
+                <option value="3">cos(x) + b</option>
+              </select>
+              <p>x = </p>
+              <div class="properties__formula__input">
+                <input class="properties__formula__input__x number-input" type="number" value="1"
+                       min="0.5" max="20" step="0.01" placeholder="Enter x...">
+                <button class="properties__formula__button button-minus">-</button>
+                <button class="properties__formula__button button-plus">+</button>
+              </div>
+              <p>b = </p>
+              <div class="properties__formula__input">
+                <input class="properties__formula__input__b number-input" type="number" value="1"
+                       min="0.5" max="20" step="0.01" placeholder="Enter b...">
+                <button class="properties__formula__button button-minus">-</button>
+                <button class="properties__formula__button button-plus">+</button>
+              </div>
+            </label>
+          </div>
+          <div class="properties__quantization-type">
+            <label>
+              <select class="properties__quantization-type__select">
+                <option value="upper">Ближайшее сверху значение</option>
+                <option value="lower">Ближайшее снизу значение</option>
+                <option value="closer">Ближайшее значение</option>
+              </select>
+            </label>
+          </div>
+          <div class="properties__quantization-step">
+            <label>
+              <input class="quantization-step__input number-input" type="number" value="1"
+                     min="0.5" max="20" step="0.01" />
+            </label>
+          </div>
+          <div class="properties__start-quantization">
+            <button class="properties__start-quantization__button"
+                    type="submit">Начать квантование
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="drawing-panel" id="drawingPanel">
+        <canvas class="drawing-panel__canvas"></canvas>
+      </div>
     </div>
-<!--      <form id="greet-form">-->
+  <!--      <form id="greet-form">-->
 <!--        <input id="greet-input" placeholder="Enter a name..." />-->
 <!--        <button type="submit">Greet</button>-->
 <!--      </form>-->
