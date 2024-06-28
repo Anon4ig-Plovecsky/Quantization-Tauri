@@ -1,5 +1,6 @@
 {
   "build": {
+    "beforeDevCommand": "",
     "devPath": "../src",
     "distDir": "../src",
     "withGlobalTauri": true
