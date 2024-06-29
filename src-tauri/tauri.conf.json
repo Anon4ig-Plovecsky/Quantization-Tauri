@@ -21,7 +21,9 @@
       {
         "title": "quantization-tauri",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "minWidth": 0,
+        "minHeight": 200
       }
     ],
     "security": {

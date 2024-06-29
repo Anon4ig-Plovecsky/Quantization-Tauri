@@ -4,10 +4,10 @@ let greetInputEl;
 let greetMsgEl;
 const MinPropertiesWidth = 400;
 const MinCanvasWidth = 300;
-const DefaultCanvasHeight = `500px`;
+const MinCanvasHeight = 300;
 const MainPageDefaultClass = "main-page";
 const MainPageVerticalClass = "main-page_vertical";
-const ScrollBarSize = 24;
+const OldScrollBarSize = 24;
 
 async function greet() {
   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -46,19 +46,32 @@ function onResizeWindow(window) {
   let canvasWidth = windowSize.width - propertiesPanel.clientWidth;
   if(mainPage.className === MainPageVerticalClass) {  // tablet view
     let canvasHeight = windowSize.height - propertiesPanel.clientHeight;
+    drawingPanelCanvas.style.height = canvasHeight + `px`;
     if(windowSize.width < MinPropertiesWidth) {       // enabled horizontal scrollbar
-      mainPage.style.overflowX = `scroll`;
-      drawingPanelCanvas.style.height = (canvasHeight - ScrollBarSize) + `px`;
+      document.body.style.overflowX = `scroll`;
     } else {                                          // disabled horizontal scrollbar
       drawingPanelCanvas.style.width = windowSize.width + `px`;
-      drawingPanelCanvas.style.height = canvasHeight + `px`;
-      if(mainPage.style.overflowX === `scroll`)
-        mainPage.style.overflowX = `hidden`;
+      if(document.body.style.overflowX === `scroll`)
+        document.body.style.overflowX = `hidden`;
     }
   } else {                                            // desktop view
     drawingPanelCanvas.style.width = canvasWidth + `px`;
     drawingPanelCanvas.style.height = windowSize.height + `px`;
   }
+
+  //
+  if(parseStrPxToInt(drawingPanelCanvas.style.height) < MinCanvasHeight) {
+    drawingPanelCanvas.style.height = MinCanvasHeight + `px`;
+    if(document.body.style.overflowY === `hidden` || mainPage.style.overflowY === ``) {
+      document.body.style.overflowY = `scroll`;
+    }
+  } else if (document.body.style.overflowY === `scroll`) {
+    document.body.style.overflowY = `hidden`;
+  }
+
+  // if(document.body.style.overflowX === `scroll`)
+  //   drawingPanelCanvas.style.height =
+  //       (parseStrPxToInt(drawingPanelCanvas.style.height) - ScrollBarSize) + `px`;
 
   // If the width of the canvas is less than the minimum,
   // then turn on main-page the vertical mode
@@ -81,7 +94,6 @@ window.addEventListener("DOMContentLoaded", () => {
 let mainPage = document.getElementById("mainPage");
 let drawingPanelCanvas = document.getElementById("drawingPanelCanvas");
 let propertiesPanel = document.getElementById("propertiesPanel");
-
 // Idle call to rebuild drawingCanvas
 onResizeWindow(window);
 window.addEventListener("resize", (e) => onResizeWindow(e.target));
