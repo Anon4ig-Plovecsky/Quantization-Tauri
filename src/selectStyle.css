@@ -1,0 +1,62 @@
+/*by Anon4ig Plov*/
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown select {
+    display: none;
+}
+
+.dropdown_selected {
+    background-color: white;
+}
+
+.dropdown_selected:after {
+    position: relative;
+    content: "";
+    top: 13px;
+    right: -8px;
+    width: 0;
+    height: 0;
+    border: 6px solid;
+    border-color: black transparent transparent transparent;
+}
+
+.dropdown_selected.dropdown_pressed:after {
+    position: relative;
+    border-color: transparent transparent black transparent;
+    padding-bottom: 70px;
+    top: -81px;
+}
+
+.dropdown__item,.dropdown_selected {
+    color: black;
+    padding: 8px 16px;
+    border: 1px solid;
+    border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+    cursor: pointer;
+    user-select: none;
+    display: inherit;
+}
+
+.dropdown__menu {
+    position: absolute;
+    background-color: white;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 99;
+}
+
+.dropdown__menu_hidden {
+    display: none;
+}
+
+.dropdown__item:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dropdown_selected:hover {
+    background-color: #cccccc;
+}

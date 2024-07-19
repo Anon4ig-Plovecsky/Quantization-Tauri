@@ -2,9 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quantization-Tauri</title>
+    <!--------------------------Dropdown-------------------------->
+    <link rel="stylesheet" href="selectStyle.css"/>
+    <script type="module" src="selectController.js" defer></script>
+
+    <link rel="stylesheet" href="styles.css" />
     <script type="module" src="/main.js" defer></script>
   </head>
 
@@ -14,20 +18,20 @@
         <form class="properties__form">
           <div class="properties__formula">
             <label class="row">
-              <select class="properties__formula__select">
-                <option value="0" selected>sin(x + b)</option>
-                <option value="1">cos(x + b)</option>
-                <option value="2">sin(x) + b</option>
-                <option value="3">cos(x) + b</option>
-              </select>
-              <p>x = </p>
+              <div class="properties__formula__select dropdown">
+                <select>
+                  <option value="0" selected>sin(x + b)</option>
+                  <option value="1">cos(x + b)</option>
+                  <option value="2">sin(x) + b</option>
+                  <option value="3">cos(x) + b</option>
+                </select>
+              </div>
               <div class="properties__formula__input">
                 <input class="properties__formula__input__x number-input" type="number" value="1"
                        min="0.5" max="20" step="0.01" placeholder="Enter x...">
                 <button class="properties__formula__button button-minus">-</button>
                 <button class="properties__formula__button button-plus">+</button>
               </div>
-              <p>b = </p>
               <div class="properties__formula__input">
                 <input class="properties__formula__input__b number-input" type="number" value="1"
                        min="0.5" max="20" step="0.01" placeholder="Enter b...">
@@ -36,20 +40,33 @@
               </div>
             </label>
           </div>
+          <div class="properties__description row">
+            <p class="properties__description__formula">Формула</p>
+            <p class="properties__description__x">X</p>
+            <p class="properties__description__y">Y</p>
+          </div>
           <div class="properties__quantization-type">
             <label>
-              <select class="properties__quantization-type__select">
-                <option value="upper">Ближайшее сверху значение</option>
-                <option value="lower">Ближайшее снизу значение</option>
-                <option value="closer">Ближайшее значение</option>
-              </select>
+              <div class="properties__quantization-type__select dropdown">
+                <select>
+                  <option value="upper" selected>Ближайшее сверху значение</option>
+                  <option value="lower">Ближайшее снизу значение</option>
+                  <option value="closer">Ближайшее значение</option>
+                </select>
+              </div>
             </label>
+          </div>
+          <div class="properties__description">
+            <p class="properties__description__quantization-type">Тип квантования</p>
           </div>
           <div class="properties__quantization-step">
             <label>
               <input class="quantization-step__input number-input" type="number" value="1"
                      min="0.5" max="20" step="0.01" />
             </label>
+          </div>
+          <div class="properties__description">
+            <p class="properties__description__quantization-step">Шаг квантования</p>
           </div>
           <div class="properties__start-quantization">
             <button class="properties__start-quantization__button"

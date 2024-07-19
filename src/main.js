@@ -59,7 +59,6 @@ function onResizeWindow(window) {
     drawingPanelCanvas.style.height = windowSize.height + `px`;
   }
 
-  //
   if(parseStrPxToInt(drawingPanelCanvas.style.height) < MinCanvasHeight) {
     drawingPanelCanvas.style.height = MinCanvasHeight + `px`;
     if(document.body.style.overflowY === `hidden` || mainPage.style.overflowY === ``) {
