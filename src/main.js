@@ -9,10 +9,10 @@ const MainPageDefaultClass = "main-page";
 const MainPageVerticalClass = "main-page_vertical";
 const OldScrollBarSize = 24;
 
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-  greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
-}
+// async function greet() {
+//   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+//   greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
+// }
 
 function parseStrPxToInt(strValue = "") {
   strValue.replace(`px`, ``);
@@ -80,14 +80,14 @@ function onResizeWindow(window) {
     changeStateOfElement(mainPage, MainPageDefaultClass);
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
-});
+// window.addEventListener("DOMContentLoaded", () => {
+//   greetInputEl = document.querySelector("#greet-input");
+//   greetMsgEl = document.querySelector("#greet-msg");
+//   document.querySelector("#greet-form").addEventListener("submit", (e) => {
+//     e.preventDefault();
+//     greet();
+//   });
+// });
 
 // Creating a canvas and window change listener
 let mainPage = document.getElementById("mainPage");
