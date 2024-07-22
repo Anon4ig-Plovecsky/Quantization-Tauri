@@ -16,7 +16,7 @@
   <body>
     <div class="main-page" id="mainPage">
       <div class="properties" id="propertiesPanel">
-        <form class="properties__form">
+        <form class="properties__form" id="quantization-properties" novalidate>
           <div class="properties__formula">
             <label class="row">
               <div class="properties__formula__select dropdown">
@@ -73,6 +73,7 @@
           </div>
           <div class="properties__start-quantization">
             <button class="properties__start-quantization__button"
+                    id="start-quantization"
                     type="submit">
               Начать квантование
             </button>

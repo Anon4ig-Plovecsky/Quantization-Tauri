@@ -1,13 +1,13 @@
 // by Anon4ig Plov
 
-const classDropdown = "dropdown";
-const classDropdownMenu = "dropdown__menu";
-const classDropdownItem = "dropdown__item";
-const classDropdownPressed = "dropdown_pressed";
-const classDropdownSelected = "dropdown_selected";
-const classDropdownMenuHidden = "dropdown__menu_hidden";
-const classFirstItem = "first";
-const classLastItem = "last";
+const ClassDropdown = "dropdown";
+const ClassDropdownMenu = "dropdown__menu";
+const ClassDropdownItem = "dropdown__item";
+const ClassDropdownPressed = "dropdown_pressed";
+const ClassDropdownSelected = "dropdown_selected";
+const ClassDropdownMenuHidden = "dropdown__menu_hidden";
+const ClassFirstItem = "first";
+const ClassLastItem = "last";
 let giMaxCounter = 2;
 let gcMenuIsOpened = giMaxCounter; // Determines whether a dropdown menu has just been opened or not; 2 - Menu is hided; 0 - Menu is shown
 
@@ -34,13 +34,13 @@ function onItemClicked(event, dropdownSelect, dropdownSelected) {
 
 // when clicked on the dropdown, shows/hides the menu
 function onSelectedItemClicked(event, dropdownMenu, dropdownSelected) {
-    let bMenuIsOpened = !dropdownMenu.classList.contains(classDropdownMenuHidden);
+    let bMenuIsOpened = !dropdownMenu.classList.contains(ClassDropdownMenuHidden);
     if(!bMenuIsOpened)
         closeAllDropdowns();
 
-    if(event.currentTarget.className === classDropdownSelected) {
-        dropdownMenu.classList.toggle(classDropdownMenuHidden);
-        dropdownSelected.classList.toggle(classDropdownPressed);
+    if(event.currentTarget.className === ClassDropdownSelected) {
+        dropdownMenu.classList.toggle(ClassDropdownMenuHidden);
+        dropdownSelected.classList.toggle(ClassDropdownPressed);
         bMenuIsOpened = !bMenuIsOpened;
         if(bMenuIsOpened)
             gcMenuIsOpened = giMaxCounter;
@@ -50,15 +50,15 @@ function onSelectedItemClicked(event, dropdownMenu, dropdownSelected) {
 // Adds an item to the dropdown menu
 function addItemInDropdown(dropdownMenu, strItemName, itemType = ItemType.Standard) {
     let dropdownItem = document.createElement(`div`);
-    dropdownItem.classList.add(classDropdownItem);
+    dropdownItem.classList.add(ClassDropdownItem);
     dropdownMenu.appendChild(dropdownItem);
     dropdownItem.innerHTML = strItemName;
     switch (itemType) {
         case ItemType.First:
-            dropdownItem.classList.toggle(classFirstItem, true);
+            dropdownItem.classList.toggle(ClassFirstItem, true);
             break;
         case ItemType.Last:
-            dropdownItem.classList.toggle(classLastItem, true);
+            dropdownItem.classList.toggle(ClassLastItem, true);
             break;
         default:
             break;
@@ -78,13 +78,13 @@ function fillDropdown(dropdown = new Element()) {
 
     // Create own select, with a custom style
     let dropdownSelected = document.createElement("div");
-    dropdownSelected.classList.add(classDropdownSelected);
+    dropdownSelected.classList.add(ClassDropdownSelected);
     dropdown.appendChild(dropdownSelected);
     dropdownSelected.innerHTML = dropdownOptions[dropdownSelect.selectedIndex].innerHTML;
 
     // Filling out the drop-down list and setting listeners to select a subject
     let dropdownMenu = document.createElement(`div`);
-    dropdownMenu.classList.add(classDropdownMenu, classDropdownMenuHidden);
+    dropdownMenu.classList.add(ClassDropdownMenu, ClassDropdownMenuHidden);
     dropdown.appendChild(dropdownMenu);
     for(let i = 0; i < dropdownOptions.length; i++) {
         let strItemName = dropdownOptions[i].innerHTML;
@@ -109,14 +109,14 @@ function fillDropdown(dropdown = new Element()) {
 // When opening a drop-down list, two additional listeners are always triggered, so we skip them
 function closeAllDropdowns() {
     if(gcMenuIsOpened === 0) {
-        let dropdownMenuList = document.getElementsByClassName(classDropdownMenu);
-        let dropdownSelectedList = document.getElementsByClassName(classDropdownSelected);
+        let dropdownMenuList = document.getElementsByClassName(ClassDropdownMenu);
+        let dropdownSelectedList = document.getElementsByClassName(ClassDropdownSelected);
         if(dropdownSelectedList.length !== dropdownMenuList.length)
             return;
 
         for(let i = 0; i < dropdownMenuList.length; i++) {
-            dropdownMenuList[i].classList.toggle(classDropdownMenuHidden, true);
-            dropdownSelectedList[i].classList.toggle(classDropdownPressed, false);
+            dropdownMenuList[i].classList.toggle(ClassDropdownMenuHidden, true);
+            dropdownSelectedList[i].classList.toggle(ClassDropdownPressed, false);
         }
         gcMenuIsOpened = giMaxCounter;
     }
@@ -125,7 +125,7 @@ function closeAllDropdowns() {
 }
 
 // main:
-let dropdownList = document.getElementsByClassName(classDropdown);
+let dropdownList = document.getElementsByClassName(ClassDropdown);
 for(let i = 0; i < dropdownList.length; i++)
     fillDropdown(dropdownList[i]);
 
