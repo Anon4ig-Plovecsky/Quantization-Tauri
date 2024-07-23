@@ -11,7 +11,20 @@ const ClassPlusButton = "button-plus";
 const ClassMinusButton = "button-minus";
 const IdStartQuantization = `start-quantization`;
 const IdQuantizationProperties = "quantization-properties";
+const IdSelectFormulaType = "formula-type";
+const IdInputVariableX = "x-variable";
+const IdInputVariableB = "b-variable";
+const IdSelectQuantizationType = "quantization-type";
+const IdInputQuantizationStep = "quantization-step";
+
 const OldScrollBarSize = 24;
+
+const FormulaType = {
+    SinXAndB: `0`,
+    CosXAndB: `1`,
+    SinXPlusB: `2`,
+    CosXPlusB: `3`,
+}
 
 // async function greet() {
 //   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -117,8 +130,50 @@ function addListenerToCounterButtons() {
 // In case of correctly filled data - starts quantization
 function OnStartQuantizationClicked(event) {
     let isCorrect = formQuantizationProperties.checkValidity();
-    if(!isCorrect) {
+    if(isCorrect) {
+        // Saving entered data
+        window.sessionStorage.setItem(IdSelectFormulaType, selectFormulaType.value);
+        window.sessionStorage.setItem(IdInputVariableX, inputVariableX.value);
+        window.sessionStorage.setItem(IdInputVariableB, inputVariableB.value);
+        window.sessionStorage.setItem(IdSelectQuantizationType, selectQuantizationType.value);
+        window.sessionStorage.setItem(IdInputQuantizationStep, inputQuantizationStep.value);
+    } else {
+        // Displaying incorrectly entered elements
 
+    }
+}
+
+// If some values were entered in input and select,
+// it is restored after pressing the submit button
+function restoreSavedValues() {
+    restoreItemValue(selectFormulaType, IdSelectFormulaType);
+    restoreItemValue(inputVariableX, IdInputVariableX);
+    restoreItemValue(inputVariableB, IdInputVariableB);
+    restoreItemValue(inputQuantizationStep, IdInputQuantizationStep);
+    restoreItemValue(selectQuantizationType, IdSelectQuantizationType);
+}
+// Restores the value of an item if any value was saved
+function restoreItemValue(htmlElement, strKeyName) {
+    let itemValue = window.sessionStorage.getItem(strKeyName);
+    if(itemValue === null)
+        return;
+    switch(htmlElement.nodeName.toLowerCase()) {
+        case `input`:
+            htmlElement.value = itemValue;
+            break;
+        case `select`:
+            htmlElement.value = itemValue;
+            let dropdownElement = MapSelectToDropdown.get(htmlElement);
+            if(dropdownElement === null) {
+                console.error("Dropdown list not found");
+                return;
+            }
+            dropdownElement.innerHTML = htmlElement.options[htmlElement.selectedIndex].innerHTML;
+
+            break;
+        default:
+            console.error("Not implemented type: " + htmlElement.nodeName.toLowerCase());
+            return;
     }
 }
 
@@ -145,4 +200,19 @@ addListenerToCounterButtons();
 
 let buttonStartQuantization = document.getElementById(IdStartQuantization);
 let formQuantizationProperties = document.getElementById(IdQuantizationProperties);
-buttonStartQuantization.addEventListener(`submit`, event => OnStartQuantizationClicked(event));
+
+const MapSelectToDropdown = new Map();
+let selectFormulaType = document.getElementById(IdSelectFormulaType);
+let dropdownFormulaType = selectFormulaType.parentElement.children[1];
+MapSelectToDropdown.set(selectFormulaType, dropdownFormulaType);
+
+let selectQuantizationType = document.getElementById(IdSelectQuantizationType);
+let dropdownQuantizationType = selectQuantizationType.parentElement.children[1];
+MapSelectToDropdown.set(selectQuantizationType, dropdownQuantizationType);
+
+let inputVariableX = document.getElementById(IdInputVariableX);
+let inputVariableB = document.getElementById(IdInputVariableB);
+let inputQuantizationStep = document.getElementById(IdInputQuantizationStep);
+restoreSavedValues();
+
+formQuantizationProperties.addEventListener(`submit`, event => OnStartQuantizationClicked(event));
