@@ -9,6 +9,8 @@ const MainPageDefaultClass = "main-page";
 const MainPageVerticalClass = "main-page_vertical";
 const ClassPlusButton = "button-plus";
 const ClassMinusButton = "button-minus";
+const ClassInvalid = "invalid";
+const ClassNumberInput = "number-input";
 const IdStartQuantization = `start-quantization`;
 const IdQuantizationProperties = "quantization-properties";
 const IdSelectFormulaType = "formula-type";
@@ -95,6 +97,8 @@ function onResizeWindow(window) {
         changeStateOfElement(mainPage, MainPageVerticalClass)
     else if(mainPage.className === MainPageVerticalClass && canvasWidth >= MinCanvasWidth)
         changeStateOfElement(mainPage, MainPageDefaultClass);
+
+    // TODO: Call function to draw coordinate system
 }
 
 function changeInputCounter(event) {
@@ -129,17 +133,36 @@ function addListenerToCounterButtons() {
 // unsuccessful, displays incorrectly filled elements
 // In case of correctly filled data - starts quantization
 function OnStartQuantizationClicked(event) {
-    let isCorrect = formQuantizationProperties.checkValidity();
-    if(isCorrect) {
-        // Saving entered data
-        window.sessionStorage.setItem(IdSelectFormulaType, selectFormulaType.value);
-        window.sessionStorage.setItem(IdInputVariableX, inputVariableX.value);
-        window.sessionStorage.setItem(IdInputVariableB, inputVariableB.value);
-        window.sessionStorage.setItem(IdSelectQuantizationType, selectQuantizationType.value);
-        window.sessionStorage.setItem(IdInputQuantizationStep, inputQuantizationStep.value);
-    } else {
-        // Displaying incorrectly entered elements
+    let listInputElements = document.getElementsByClassName(ClassNumberInput);
+    let isCorrectly = true;
 
+    // Saving entered data
+    window.sessionStorage.setItem(IdSelectFormulaType, selectFormulaType.value);
+    window.sessionStorage.setItem(IdSelectQuantizationType, selectQuantizationType.value);
+
+    // Check and displaying incorrectly entered elements
+    for(let i = 0; i < listInputElements.length; i++)
+        isCorrectly &= checkInputElement(listInputElements[i]);
+
+    if(isCorrectly) {
+        for (let i = 0; i < listInputElements.length; i++) {
+            let parentElement = listInputElements[i].parentElement;
+            parentElement.classList.toggle(ClassInvalid, false);
+        }
+
+        // TODO: Start Quantization
+    }
+}
+
+// Checks the correctness of the entered values and saves the result
+function checkInputElement(htmlInputElement) {
+    let isCorrect = htmlInputElement.checkValidity();
+    if(isCorrect) {
+        window.sessionStorage.setItem(htmlInputElement.id, htmlInputElement.value);
+        return true;
+    } else {
+        window.sessionStorage.setItem(htmlInputElement.id, `invalid`);
+        return false;
     }
 }
 
@@ -159,7 +182,12 @@ function restoreItemValue(htmlElement, strKeyName) {
         return;
     switch(htmlElement.nodeName.toLowerCase()) {
         case `input`:
-            htmlElement.value = itemValue;
+            if(itemValue === `invalid`) {
+                let parentElement = htmlElement.parentElement;
+                parentElement.classList.toggle(ClassInvalid, true);
+            } else {
+                htmlElement.value = itemValue;
+            }
             break;
         case `select`:
             htmlElement.value = itemValue;

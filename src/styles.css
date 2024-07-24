@@ -254,6 +254,9 @@ body {
 .properties__start-quantization__button:active {
   border-color: #a121a2;
 }
+div.invalid {
+  border-color: #dd0000;
+}
 
 @media (prefers-color-scheme: dark) {
   body {
@@ -282,6 +285,12 @@ body {
 
   .button-plus, .button-minus {
     color: white;
+  }
+  .button-plus:hover, .button-minus:hover {
+    background-color: #898989;
+  }
+  .button-plus:active, .button-minus:active {
+    background-color: #787878;
   }
 
   /*--------------------Dropdown style--------------------*/
@@ -356,5 +365,8 @@ body {
   }
   .properties__start-quantization__button:active {
     border-color: #810d81;
+  }
+  div.invalid {
+    border-color: #c90000;
   }
 }
