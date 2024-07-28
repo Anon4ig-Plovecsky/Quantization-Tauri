@@ -63,11 +63,21 @@ function onResizeWindow(window) {
 
     // Adjusts canvas depending on screen view: desktop, tablet view
     let canvasWidth = windowSize.width - propertiesPanel.clientWidth;
+
+    // If the width of the canvas is less than the minimum,
+    // then turn on main-page the vertical mode
+    if(mainPage.className === MainPageDefaultClass && canvasWidth < MinCanvasWidth)
+        changeStateOfElement(mainPage, MainPageVerticalClass)
+    else if(mainPage.className === MainPageVerticalClass && canvasWidth >= MinCanvasWidth)
+        changeStateOfElement(mainPage, MainPageDefaultClass);
+
     if(mainPage.className === MainPageVerticalClass) {  // tablet view
         let canvasHeight = windowSize.height - propertiesPanel.clientHeight;
         drawingPanelCanvas.style.height = canvasHeight + `px`;
         if(windowSize.width < MinPropertiesWidth) {       // enabled horizontal scrollbar
             document.body.style.overflowX = `scroll`;
+            if(canvasWidth < MinPropertiesWidth)
+                drawingPanelCanvas.style.width = MinPropertiesWidth + `px`;
         } else {                                          // disabled horizontal scrollbar
             drawingPanelCanvas.style.width = windowSize.width + `px`;
             if(document.body.style.overflowX === `scroll`)
@@ -91,14 +101,7 @@ function onResizeWindow(window) {
     //   drawingPanelCanvas.style.height =
     //       (parseStrPxToInt(drawingPanelCanvas.style.height) - ScrollBarSize) + `px`;
 
-    // If the width of the canvas is less than the minimum,
-    // then turn on main-page the vertical mode
-    if(mainPage.className === MainPageDefaultClass && canvasWidth < MinCanvasWidth)
-        changeStateOfElement(mainPage, MainPageVerticalClass)
-    else if(mainPage.className === MainPageVerticalClass && canvasWidth >= MinCanvasWidth)
-        changeStateOfElement(mainPage, MainPageDefaultClass);
-
-    // TODO: Call function to draw coordinate system
+    drawCoordinateSystem();
 }
 
 function changeInputCounter(event) {
@@ -214,13 +217,187 @@ function restoreItemValue(htmlElement, strKeyName) {
 //   });
 // });
 
+let pixelPerUnitT = 1.0;
+let pixelPerUnitN = 1.0;
+let ptBase = {
+    x: 5.0,
+    y: MinCanvasHeight / 2.0
+}
+// Returns the unit value in pixels, converting from the function coordinate system to canvas coordinates
+// Function overloaded! Accepts either one ptUnit parameter containing the x value and the y value;
+// or takes the value x in ptUnit and the value y in ptY as the second argument
+function parseUnitInPixelCoord(ptUnit, ptY) {
+    if(typeof ptY !== "undefined") {
+        return {
+            x: ptUnit * pixelPerUnitT + ptBase.x,
+            y: ptBase.y - ptY * pixelPerUnitN
+        };
+    }
+
+    return {
+        x: ptUnit.x * pixelPerUnitT + ptBase.x,
+        y: ptBase.y - ptUnit.y * pixelPerUnitN
+    };
+}
+
+// Draws a coordinate system in the drawingCanvas, given its length and width
+function drawCoordinateSystem() {
+    let drawingSize = {
+        width: parseStrPxToInt(drawingPanelCanvas.style.width),
+        height: parseStrPxToInt(drawingPanelCanvas.style.height)
+    }
+    drawingPanelCanvas.width = drawingSize.width;
+    drawingPanelCanvas.height = drawingSize.height;
+
+    // Determining the dimensions of a coordinate system
+    let rPadding = 35;
+    let rTextPadding = 40;
+    const rTolerance = 1e-6;
+    let rTextMargin = 10;
+
+    // Divisions
+    const MaxDivisionNumber = 10;
+    const MaxValueT = 20.0;
+    let MinValuePositiveN = 5.0;
+    let MinValueNegativeN = -5.0;
+    const ArrowWidth = 15;
+    const DivisionLineWidth = 15;
+    let iDivisionStepT = Math.trunc(MaxValueT / MaxDivisionNumber);
+    let iDivisionStepN = Math.trunc((MinValuePositiveN + Math.abs(MinValueNegativeN) + 1) / MaxDivisionNumber);
+
+    // Text size
+    let iFontAxisNameSize = 18;
+    let iFontDivisionValueSize = 13;
+    const StandardSizeCanvas = 400;
+
+    // Determining the dimensions of a coordinate system and calculation
+    // of values, taking into account the scale of the canvas
+    let iMinWidth = Math.min(drawingSize.width, drawingSize.height);
+    let rScale = iMinWidth / StandardSizeCanvas;
+    iFontAxisNameSize *= rScale;
+    iFontDivisionValueSize *= rScale;
+    rTextMargin *= rScale;
+    rPadding *= rScale;
+    rTextPadding *= rScale;
+    let coordSystemSize = {
+        width: iMinWidth - rPadding - rTextPadding - ArrowWidth,
+        height: iMinWidth - rPadding * 2.0
+    }
+
+    // Defining global variables
+    pixelPerUnitT = coordSystemSize.width / (MaxValueT + iDivisionStepT);
+    pixelPerUnitN = coordSystemSize.height / (Math.abs(MinValueNegativeN) + MinValuePositiveN + iDivisionStepN);
+    ptBase.x = (drawingSize.width - iMinWidth) / 2.0 + rTextPadding + ArrowWidth;
+    // ptBase.y = (drawingSize.height - iMinWidth) / 2.0 + Margin + pixelPerUnitN * (MinValuePositiveN + 1 + iDivisionStepN);
+    ptBase.y = (drawingSize.height - iMinWidth) / 2.0 + rPadding + pixelPerUnitN * (MinValuePositiveN + iDivisionStepN);
+
+    let context = drawingPanelCanvas.getContext(`2d`);
+    // let context = new CanvasRenderingContext2D();
+
+    //.............................................................................................
+    // Draw coordinate system
+    context.strokeStyle = `#131313`;
+    context.lineWidth = 5;
+    // context.lineJoin = `bevel`;
+    context.lineJoin = `miter`;
+    // Axis T
+    context.beginPath();
+    context.moveTo(ptBase.x, ptBase.y);
+    let bufferPoint = parseUnitInPixelCoord(MaxValueT + iDivisionStepT, 0.0);
+    context.lineTo(bufferPoint.x, bufferPoint.y);
+    context.moveTo(bufferPoint.x - ArrowWidth, bufferPoint.y - ArrowWidth);
+    context.lineTo(bufferPoint.x, bufferPoint.y);
+    context.lineTo(bufferPoint.x - ArrowWidth, bufferPoint.y + ArrowWidth);
+    context.stroke();
+    // Text T
+    context.font = `bold ` + iFontAxisNameSize + `px Rubik-VariableFont_wght`;
+    context.fillText(`t`, bufferPoint.x + rTextMargin, bufferPoint.y + rTextMargin);
+
+    // Axis N
+    context.beginPath();
+    bufferPoint = parseUnitInPixelCoord(0.0, MinValueNegativeN);
+    context.moveTo(bufferPoint.x, bufferPoint.y);
+    bufferPoint = parseUnitInPixelCoord(0.0, MinValuePositiveN + iDivisionStepN);
+    context.lineTo(bufferPoint.x, bufferPoint.y);
+    context.moveTo(bufferPoint.x - ArrowWidth, bufferPoint.y + ArrowWidth);
+    context.lineTo(bufferPoint.x, bufferPoint.y);
+    context.lineTo(bufferPoint.x + ArrowWidth, bufferPoint.y + ArrowWidth);
+    context.stroke();
+    // Text N
+    context.fillText(`N`, bufferPoint.x - rTextMargin - iFontAxisNameSize / 2.0, bufferPoint.y - rTextMargin + iFontAxisNameSize / 2.0);
+
+    //.............................................................................................
+    // Draw divisions on the coordinate axes
+    context.lineWidth = 2;
+    context.font = iFontDivisionValueSize + `px Rubik-VariableFont_wght`;
+    context.textAlign = `center`;
+    context.textBaseline = `middle`;
+    // T axis
+    for(let i = iDivisionStepT; i <= MaxValueT; i += iDivisionStepT) {
+        bufferPoint = parseUnitInPixelCoord(i, 0);
+        context.beginPath();
+        context.moveTo(bufferPoint.x, bufferPoint.y - DivisionLineWidth / 2.0);
+        context.lineTo(bufferPoint.x, bufferPoint.y + DivisionLineWidth / 2.0);
+        context.stroke();
+
+        // Text division
+        context.fillText(i.toString(), bufferPoint.x, bufferPoint.y + DivisionLineWidth * rScale);
+    }
+    // N axis
+    for(let i = MinValueNegativeN; i <= MinValuePositiveN; i += iDivisionStepN) {
+        bufferPoint = parseUnitInPixelCoord(0, i);
+        // Text division
+        if(Math.abs(i) < rTolerance) {
+            context.fillText(i.toString(), bufferPoint.x - DivisionLineWidth / 1.5 * rScale, bufferPoint.y);
+            continue;
+        }
+
+        context.beginPath();
+        context.moveTo(bufferPoint.x - DivisionLineWidth / 2.0, bufferPoint.y);
+        context.lineTo(bufferPoint.x + DivisionLineWidth / 2.0, bufferPoint.y);
+        context.stroke();
+
+        context.fillText(i.toString(), bufferPoint.x - DivisionLineWidth * rScale, bufferPoint.y);
+    }
+
+    //.............................................................................................
+    // Drawing a coordinate system grid
+    context.strokeStyle = `#343434`;
+    context.lineWidth = 1;
+    context.setLineDash([3, 5]);
+    // T axis
+    for(let i = iDivisionStepT; i <= MaxValueT + iDivisionStepT; i += iDivisionStepT) {
+        bufferPoint = parseUnitInPixelCoord(i, MinValueNegativeN);
+        context.beginPath();
+        context.moveTo(bufferPoint.x, bufferPoint.y);
+        bufferPoint = parseUnitInPixelCoord(i, MinValuePositiveN + iDivisionStepN);
+        context.lineTo(bufferPoint.x, bufferPoint.y);
+        context.stroke();
+    }
+    // N axis
+    for(let i = MinValueNegativeN; i <= MinValuePositiveN + iDivisionStepN; i += iDivisionStepN) {
+        if(Math.abs(i) < rTolerance)
+            continue;
+
+        bufferPoint = parseUnitInPixelCoord(0, i);
+        context.beginPath();
+        context.moveTo(bufferPoint.x, bufferPoint.y);
+        bufferPoint = parseUnitInPixelCoord(MaxValueT + iDivisionStepT, i);
+        context.lineTo(bufferPoint.x, bufferPoint.y);
+        context.stroke();
+    }
+}
+
+// main:
+
 // Creating a canvas and window change listener
 let mainPage = document.getElementById("mainPage");
 let drawingPanelCanvas = document.getElementById("drawingPanelCanvas");
 let propertiesPanel = document.getElementById("propertiesPanel");
+
+window.addEventListener("resize", (e) => onResizeWindow(e.target));
 // Idle call to rebuild drawingCanvas
 onResizeWindow(window);
-window.addEventListener("resize", (e) => onResizeWindow(e.target));
 
 // Creating a listener for the input counter increment and decrement buttons
 // Finding all counter increment and decrement buttons
