@@ -1,7 +1,5 @@
 const { invoke } = window.__TAURI__.tauri;
 
-let greetInputEl;
-let greetMsgEl;
 const MinPropertiesWidth = 400;
 const MinCanvasWidth = 300;
 const MinCanvasHeight = 300;
@@ -14,7 +12,7 @@ const ClassNumberInput = "number-input";
 const IdStartQuantization = `start-quantization`;
 const IdQuantizationProperties = "quantization-properties";
 const IdSelectFormulaType = "formula-type";
-const IdInputVariableX = "x-variable";
+const IdInputVariableK = "k-variable";
 const IdInputVariableB = "b-variable";
 const IdSelectQuantizationType = "quantization-type";
 const IdInputQuantizationStep = "quantization-step";
@@ -22,10 +20,10 @@ const IdInputQuantizationStep = "quantization-step";
 const OldScrollBarSize = 24;
 
 const FormulaType = {
-    SinXAndB: `0`,
-    CosXAndB: `1`,
-    SinXPlusB: `2`,
-    CosXPlusB: `3`,
+    SinKXAndB: `0`,
+    CosKXAndB: `1`,
+    SinKXPlusB: `2`,
+    CosKXPlusB: `3`,
 }
 
 // async function greet() {
@@ -153,7 +151,14 @@ function OnStartQuantizationClicked(event) {
             parentElement.classList.toggle(ClassInvalid, false);
         }
 
-        // TODO: Start Quantization
+        // Calling the start_quantization command in rust
+        invoke(`start_quantization`, {
+            formulaType: selectFormulaType.value,
+            variableK: parseFloat(inputVariableK.value),
+            variableB: parseFloat(inputVariableB.value),
+            quantizationType: selectQuantizationType.value,
+            quantizationStep: parseFloat(inputQuantizationStep.value)
+        });
     }
 }
 
@@ -173,7 +178,7 @@ function checkInputElement(htmlInputElement) {
 // it is restored after pressing the submit button
 function restoreSavedValues() {
     restoreItemValue(selectFormulaType, IdSelectFormulaType);
-    restoreItemValue(inputVariableX, IdInputVariableX);
+    restoreItemValue(inputVariableK, IdInputVariableK);
     restoreItemValue(inputVariableB, IdInputVariableB);
     restoreItemValue(inputQuantizationStep, IdInputQuantizationStep);
     restoreItemValue(selectQuantizationType, IdSelectQuantizationType);
@@ -207,15 +212,6 @@ function restoreItemValue(htmlElement, strKeyName) {
             return;
     }
 }
-
-// window.addEventListener("DOMContentLoaded", () => {
-//   greetInputEl = document.querySelector("#greet-input");
-//   greetMsgEl = document.querySelector("#greet-msg");
-//   document.querySelector("#greet-form").addEventListener("submit", (e) => {
-//     e.preventDefault();
-//     greet();
-//   });
-// });
 
 let pixelPerUnitT = 1.0;
 let pixelPerUnitN = 1.0;
@@ -415,7 +411,7 @@ let selectQuantizationType = document.getElementById(IdSelectQuantizationType);
 let dropdownQuantizationType = selectQuantizationType.parentElement.children[1];
 MapSelectToDropdown.set(selectQuantizationType, dropdownQuantizationType);
 
-let inputVariableX = document.getElementById(IdInputVariableX);
+let inputVariableK = document.getElementById(IdInputVariableK);
 let inputVariableB = document.getElementById(IdInputVariableB);
 let inputQuantizationStep = document.getElementById(IdInputQuantizationStep);
 restoreSavedValues();
