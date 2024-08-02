@@ -18,13 +18,7 @@ const IdSelectQuantizationType = "quantization-type";
 const IdInputQuantizationStep = "quantization-step";
 
 const OldScrollBarSize = 24;
-
-const FormulaType = {
-    SinKXAndB: `0`,
-    CosKXAndB: `1`,
-    SinKXPlusB: `2`,
-    CosKXPlusB: `3`,
-}
+const MaxValueT = 20.0;
 
 // async function greet() {
 //   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -110,9 +104,9 @@ function changeInputCounter(event) {
 
     let inputElement = listInputElements[0];
     if(event.currentTarget.className.includes(ClassMinusButton))
-        inputElement.stepDown(10);
+        inputElement.stepDown(100);
     else
-        inputElement.stepUp(10);
+        inputElement.stepUp(100);
 }
 
 // Adds listeners to increment and decrement input counters
@@ -157,8 +151,9 @@ function OnStartQuantizationClicked(event) {
             variableK: parseFloat(inputVariableK.value),
             variableB: parseFloat(inputVariableB.value),
             quantizationType: selectQuantizationType.value,
-            quantizationStep: parseFloat(inputQuantizationStep.value)
-        });
+            quantizationStep: parseFloat(inputQuantizationStep.value),
+            maxValueT: MaxValueT
+        }).then(response => console.log(response));
     }
 }
 
@@ -253,7 +248,6 @@ function drawCoordinateSystem() {
 
     // Divisions
     const MaxDivisionNumber = 10;
-    const MaxValueT = 20.0;
     let MinValuePositiveN = 5.0;
     let MinValueNegativeN = -5.0;
     const ArrowWidth = 15;
