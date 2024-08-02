@@ -6,16 +6,13 @@ static FUNCTION_POINTS_NAME: &str = "FunctionPoints";
 static QUANTIZED_SIGNAL_NAME: &str = "QuantizedSignal";
 static MIN_N_VALUE_NAME: &str = "MinValueN";
 static MAX_N_VALUE_NAME: &str = "MaxValueN";
+const TOLERANCE: f64 = 1e-3_f64;
 
-// #[derive(std::fmt::Debug)]
 pub enum ErrorType {
     Fail,
-    InvalidArgs,
-    NotImplemented,
+    _NotImplemented,
     Unexpected
 }
-
-const TOLERANCE: f64 = 1e-3_f64;
 
 // A structure that defines a function by a given formula, and also calculates a quantized function by a given type
 pub struct QuantizationController {
@@ -116,7 +113,11 @@ impl QuantizationController {
             }
         }
 
-        return Ok(true);
+        return if self.vec_quantized_signal.is_empty() {
+            Err(ErrorType::Unexpected)
+        } else {
+            Ok(true)
+        }
     }
 
     /// Determines the current quantization level and returns a point

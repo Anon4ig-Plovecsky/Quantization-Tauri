@@ -178,6 +178,9 @@ body {
   border-bottom: 3px solid #131313;
   transition: border-bottom-color 0.5s;
 }
+.properties__formula__input input {
+  max-width: 60px;
+}
 .properties__formula__input input:focus {
   outline: none;
 }
@@ -203,13 +206,13 @@ body {
   margin-top: 3px;
 }
 .properties__description__formula {
-  padding-right: 7.5em;
+  padding-right: 7.8em;
 }
 .properties__description__k {
-  padding-right: 9.8em;
+  padding-right: 9.6em;
 }
 .properties__description__b {
-  padding-right: 1.8em;
+  padding-right: 1.3em;
 }
 
 .properties__quantization-step {
@@ -223,6 +226,7 @@ body {
   transition: border-bottom-color 0.1s;
 }
 .properties__quantization-step input {
+  padding-left: 8px;
   border: none;
   background-color: transparent;
 }
@@ -230,7 +234,7 @@ body {
   outline: none;
 }
 .properties__quantization-step .button-plus {
-  margin-right: -12px;
+  margin-right: 0;
 }
 
 .properties__start-quantization__button {
