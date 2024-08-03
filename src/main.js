@@ -19,6 +19,14 @@ const IdInputQuantizationStep = "quantization-step";
 
 const OldScrollBarSize = 24;
 const MaxValueT = 20.0;
+let valueTOnScreen = MaxValueT;
+
+let quantizedFunction = {
+    functionPoints: [[0.0, 0.0]],
+    quantizedSignal: [[0.0, 0.0]],
+    minValueN: 0.0,
+    maxValueN: 0.0
+}
 
 // async function greet() {
 //   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -152,9 +160,22 @@ function OnStartQuantizationClicked(event) {
             variableB: parseFloat(inputVariableB.value),
             quantizationType: selectQuantizationType.value,
             quantizationStep: parseFloat(inputQuantizationStep.value),
-            maxValueT: MaxValueT
-        }).then(response => console.log(response));
+            maxValueT: valueTOnScreen
+        }).then(response => saveQuantizedFunction(response));
     }
+}
+
+// Stores the quantized function into temporary memory
+function saveQuantizedFunction(responseObject) {
+    if (responseObject !== null) {
+        quantizedFunction = responseObject;
+        window.sessionStorage.setItem(`functionPoints`, JSON.stringify(quantizedFunction.functionPoints));
+        window.sessionStorage.setItem(`quantizedSignal`, JSON.stringify(quantizedFunction.quantizedSignal));
+        window.sessionStorage.setItem(`minValueN`, quantizedFunction.minValueN);
+        window.sessionStorage.setItem(`maxValueN`, quantizedFunction.maxValueN);
+    }
+
+    location.reload();
 }
 
 // Checks the correctness of the entered values and saves the result
@@ -177,6 +198,17 @@ function restoreSavedValues() {
     restoreItemValue(inputVariableB, IdInputVariableB);
     restoreItemValue(inputQuantizationStep, IdInputQuantizationStep);
     restoreItemValue(selectQuantizationType, IdSelectQuantizationType);
+
+    let strFunctionPoints = window.sessionStorage.getItem(`functionPoints`);
+    let arrFunctionPoints = JSON.parse(strFunctionPoints);
+    let strQuantizedSignal = window.sessionStorage.getItem(`quantizedSignal`);
+    let arrQuantizedSignal = JSON.parse(strQuantizedSignal);
+    quantizedFunction = {
+        functionPoints: arrFunctionPoints,
+        quantizedSignal: arrQuantizedSignal,
+        minValueN: window.sessionStorage.getItem(`minValueN`),
+        maxValueN: window.sessionStorage.getItem(`maxValueN`)
+    }
 }
 // Restores the value of an item if any value was saved
 function restoreItemValue(htmlElement, strKeyName) {
@@ -226,8 +258,8 @@ function parseUnitInPixelCoord(ptUnit, ptY) {
     }
 
     return {
-        x: ptUnit.x * pixelPerUnitT + ptBase.x,
-        y: ptBase.y - ptUnit.y * pixelPerUnitN
+        x: ptUnit[0] * pixelPerUnitT + ptBase.x,
+        y: ptBase.y - ptUnit[1] * pixelPerUnitN
     };
 }
 
@@ -254,6 +286,7 @@ function drawCoordinateSystem() {
     const DivisionLineWidth = 15;
     let iDivisionStepT = Math.trunc(MaxValueT / MaxDivisionNumber);
     let iDivisionStepN = Math.trunc((MinValuePositiveN + Math.abs(MinValueNegativeN) + 1) / MaxDivisionNumber);
+    valueTOnScreen = MaxValueT + iDivisionStepT;
 
     // Text size
     let iFontAxisNameSize = 18;
@@ -275,11 +308,17 @@ function drawCoordinateSystem() {
     }
 
     // Defining global variables
-    pixelPerUnitT = coordSystemSize.width / (MaxValueT + iDivisionStepT);
+    pixelPerUnitT = coordSystemSize.width / valueTOnScreen;
     pixelPerUnitN = coordSystemSize.height / (Math.abs(MinValueNegativeN) + MinValuePositiveN + iDivisionStepN);
     ptBase.x = (drawingSize.width - iMinWidth) / 2.0 + rTextPadding + ArrowWidth;
     // ptBase.y = (drawingSize.height - iMinWidth) / 2.0 + Margin + pixelPerUnitN * (MinValuePositiveN + 1 + iDivisionStepN);
     ptBase.y = (drawingSize.height - iMinWidth) / 2.0 + rPadding + pixelPerUnitN * (MinValuePositiveN + iDivisionStepN);
+
+    //..................................................................................................................
+    // If a quantized function has been calculated, display it and the main function
+    if(quantizedFunction.quantizedSignal !== null && quantizedFunction.quantizedSignal.length > 1)
+        drawQuantizedFunctions()
+    //..................................................................................................................
 
     let context = drawingPanelCanvas.getContext(`2d`);
     // let context = new CanvasRenderingContext2D();
@@ -288,12 +327,11 @@ function drawCoordinateSystem() {
     // Draw coordinate system
     context.strokeStyle = `#131313`;
     context.lineWidth = 5;
-    // context.lineJoin = `bevel`;
     context.lineJoin = `miter`;
     // Axis T
     context.beginPath();
     context.moveTo(ptBase.x, ptBase.y);
-    let bufferPoint = parseUnitInPixelCoord(MaxValueT + iDivisionStepT, 0.0);
+    let bufferPoint = parseUnitInPixelCoord(valueTOnScreen, 0.0);
     context.lineTo(bufferPoint.x, bufferPoint.y);
     context.moveTo(bufferPoint.x - ArrowWidth, bufferPoint.y - ArrowWidth);
     context.lineTo(bufferPoint.x, bufferPoint.y);
@@ -356,7 +394,7 @@ function drawCoordinateSystem() {
     context.lineWidth = 1;
     context.setLineDash([3, 5]);
     // T axis
-    for(let i = iDivisionStepT; i <= MaxValueT + iDivisionStepT; i += iDivisionStepT) {
+    for(let i = iDivisionStepT; i <= valueTOnScreen; i += iDivisionStepT) {
         bufferPoint = parseUnitInPixelCoord(i, MinValueNegativeN);
         context.beginPath();
         context.moveTo(bufferPoint.x, bufferPoint.y);
@@ -372,10 +410,51 @@ function drawCoordinateSystem() {
         bufferPoint = parseUnitInPixelCoord(0, i);
         context.beginPath();
         context.moveTo(bufferPoint.x, bufferPoint.y);
-        bufferPoint = parseUnitInPixelCoord(MaxValueT + iDivisionStepT, i);
+        bufferPoint = parseUnitInPixelCoord(valueTOnScreen, i);
         context.lineTo(bufferPoint.x, bufferPoint.y);
         context.stroke();
     }
+}
+
+// Draws the calculated function, the quantized signal, and the difference
+// between the quantized signal and the function
+function drawQuantizedFunctions() {
+    if(quantizedFunction.functionPoints.length < 1
+        || quantizedFunction.quantizedSignal.length < 1)
+        return;
+
+    let context = drawingPanelCanvas.getContext(`2d`);
+    // let context = new CanvasRenderingContext2D();
+    context.strokeStyle = `#ae23ae`;
+    context.lineWidth = 2;
+    context.lineJoin = `miter`;
+    context.setLineDash([]);
+
+    drawFunction(context, quantizedFunction.functionPoints);
+
+    context.strokeStyle = "#5aa216";
+    drawFunction(context, quantizedFunction.quantizedSignal);
+}
+
+// Draws array points in drawingCanvas
+function drawFunction(context, arrFunctionPoints) {
+    if(arrFunctionPoints === null || arrFunctionPoints.length === 0)
+        return;
+
+    let isFirstPoint = true;
+    context.beginPath();
+    for(let i = 0; i < arrFunctionPoints.length; i++) {
+        let point = arrFunctionPoints[i];
+
+        let ptCanvas = parseUnitInPixelCoord(point);
+        if(isFirstPoint) {
+            isFirstPoint = false;
+            context.moveTo(ptCanvas.x, ptCanvas.y);
+        }
+        else
+            context.lineTo(ptCanvas.x, ptCanvas.y);
+    }
+    context.stroke();
 }
 
 // main:
@@ -385,16 +464,11 @@ let mainPage = document.getElementById("mainPage");
 let drawingPanelCanvas = document.getElementById("drawingPanelCanvas");
 let propertiesPanel = document.getElementById("propertiesPanel");
 
-window.addEventListener("resize", (e) => onResizeWindow(e.target));
-// Idle call to rebuild drawingCanvas
-onResizeWindow(window);
-
 // Creating a listener for the input counter increment and decrement buttons
 // Finding all counter increment and decrement buttons
 addListenerToCounterButtons();
 
 let buttonStartQuantization = document.getElementById(IdStartQuantization);
-let formQuantizationProperties = document.getElementById(IdQuantizationProperties);
 
 const MapSelectToDropdown = new Map();
 let selectFormulaType = document.getElementById(IdSelectFormulaType);
@@ -410,4 +484,8 @@ let inputVariableB = document.getElementById(IdInputVariableB);
 let inputQuantizationStep = document.getElementById(IdInputQuantizationStep);
 restoreSavedValues();
 
-formQuantizationProperties.addEventListener(`submit`, event => OnStartQuantizationClicked(event));
+window.addEventListener("resize", (e) => onResizeWindow(e.target));
+// Idle call to rebuild drawingCanvas
+onResizeWindow(window);
+
+buttonStartQuantization.addEventListener(`click`, event => OnStartQuantizationClicked(event));

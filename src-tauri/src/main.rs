@@ -6,7 +6,7 @@ mod quantization_controller;
 use deserialization::{FormulaType, QuantizationType };
 
 #[tauri::command]
-fn start_quantization(formula_type: FormulaType,
+async fn start_quantization(formula_type: FormulaType,
                       variable_k: f64,
                       variable_b: f64,
                       quantization_type: QuantizationType,

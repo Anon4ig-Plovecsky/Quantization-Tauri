@@ -1,11 +1,11 @@
 use serde::ser::{SerializeSeq, SerializeStruct};
 use crate::deserialization::{FormulaType, QuantizationType};
 type Point = (f64, f64);
-static STRUCT_NAME: &str = "QuantizedFunction";
-static FUNCTION_POINTS_NAME: &str = "FunctionPoints";
-static QUANTIZED_SIGNAL_NAME: &str = "QuantizedSignal";
-static MIN_N_VALUE_NAME: &str = "MinValueN";
-static MAX_N_VALUE_NAME: &str = "MaxValueN";
+static STRUCT_NAME: &str = "quantizedFunction";
+static FUNCTION_POINTS_NAME: &str = "functionPoints";
+static QUANTIZED_SIGNAL_NAME: &str = "quantizedSignal";
+static MIN_N_VALUE_NAME: &str = "minValueN";
+static MAX_N_VALUE_NAME: &str = "maxValueN";
 const TOLERANCE: f64 = 1e-3_f64;
 
 pub enum ErrorType {
