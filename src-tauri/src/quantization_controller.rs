@@ -91,7 +91,8 @@ impl QuantizationController {
             let pt_quantized = self.calc_quantized_point(*pt_function, &mut current_quantized_level);
 
             // If the current quantization level has changed compared to the last level, then saves the quantized signal points
-            if current_quantized_level != last_quantized_level {
+            if current_quantized_level != last_quantized_level
+                    || (*pt_function).0 - self.max_value_time < TOLERANCE {
                 // if t != start_point
                 if last_quantized_level != i32::MIN {
                     let pt_start = (pt_quantized.0, f64::from(last_quantized_level) * self.quantization_step);

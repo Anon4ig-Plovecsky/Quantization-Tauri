@@ -135,7 +135,7 @@ function addListenerToCounterButtons() {
 // Checks the correctness of the entered values and, if
 // unsuccessful, displays incorrectly filled elements
 // In case of correctly filled data - starts quantization
-function OnStartQuantizationClicked(event) {
+function OnStartQuantizationClicked() {
     let listInputElements = document.getElementsByClassName(ClassNumberInput);
     let isCorrectly = true;
 
@@ -161,7 +161,10 @@ function OnStartQuantizationClicked(event) {
             quantizationType: selectQuantizationType.value,
             quantizationStep: parseFloat(inputQuantizationStep.value),
             maxValueT: valueTOnScreen
-        }).then(response => saveQuantizedFunction(response));
+        }).then(response => {
+            saveQuantizedFunction(response);
+            drawCoordinateSystem();
+        });
     }
 }
 
@@ -174,8 +177,6 @@ function saveQuantizedFunction(responseObject) {
         window.sessionStorage.setItem(`minValueN`, quantizedFunction.minValueN);
         window.sessionStorage.setItem(`maxValueN`, quantizedFunction.maxValueN);
     }
-
-    location.reload();
 }
 
 // Checks the correctness of the entered values and saves the result
@@ -183,9 +184,15 @@ function checkInputElement(htmlInputElement) {
     let isCorrect = htmlInputElement.checkValidity();
     if(isCorrect) {
         window.sessionStorage.setItem(htmlInputElement.id, htmlInputElement.value);
+
+        let parentElement = htmlInputElement.parentElement;
+        parentElement.classList.toggle(ClassInvalid, false);
         return true;
     } else {
         window.sessionStorage.setItem(htmlInputElement.id, `invalid`);
+
+        let parentElement = htmlInputElement.parentElement;
+        parentElement.classList.toggle(ClassInvalid, true);
         return false;
     }
 }
@@ -282,10 +289,17 @@ function drawCoordinateSystem() {
     const MaxDivisionNumber = 10;
     let MinValuePositiveN = 5.0;
     let MinValueNegativeN = -5.0;
+    if(quantizedFunction !== null) {
+        if(quantizedFunction.maxValueN > MinValuePositiveN)
+            MinValuePositiveN = Math.ceil(parseFloat(quantizedFunction.maxValueN));
+        if(quantizedFunction.minValueN < MinValueNegativeN)
+            MinValueNegativeN = Math.floor(parseFloat(quantizedFunction.minValueN));
+    }
+
     const ArrowWidth = 15;
     const DivisionLineWidth = 15;
     let iDivisionStepT = Math.trunc(MaxValueT / MaxDivisionNumber);
-    let iDivisionStepN = Math.trunc((MinValuePositiveN + Math.abs(MinValueNegativeN) + 1) / MaxDivisionNumber);
+    let iDivisionStepN = Math.round((MinValuePositiveN + Math.abs(MinValueNegativeN) + 2) / MaxDivisionNumber);
     valueTOnScreen = MaxValueT + iDivisionStepT;
 
     // Text size
@@ -315,17 +329,21 @@ function drawCoordinateSystem() {
     ptBase.y = (drawingSize.height - iMinWidth) / 2.0 + rPadding + pixelPerUnitN * (MinValuePositiveN + iDivisionStepN);
 
     //..................................................................................................................
-    // If a quantized function has been calculated, display it and the main function
-    if(quantizedFunction.quantizedSignal !== null && quantizedFunction.quantizedSignal.length > 1)
-        drawQuantizedFunctions()
-    //..................................................................................................................
 
     let context = drawingPanelCanvas.getContext(`2d`);
     // let context = new CanvasRenderingContext2D();
+    // Reset drawingCanvas
+    context.reset();
+
+    //..................................................................................................................
+    // If a quantized function has been calculated, display it and the main function
+    if(quantizedFunction.quantizedSignal !== null && quantizedFunction.quantizedSignal.length > 1)
+        drawQuantizedFunctions(MinValueNegativeN, MinValuePositiveN, iDivisionStepN, valueTOnScreen);
 
     //.............................................................................................
     // Draw coordinate system
     context.strokeStyle = `#131313`;
+    context.fillStyle = `#131313`;
     context.lineWidth = 5;
     context.lineJoin = `miter`;
     // Axis T
@@ -372,20 +390,28 @@ function drawCoordinateSystem() {
         context.fillText(i.toString(), bufferPoint.x, bufferPoint.y + DivisionLineWidth * rScale);
     }
     // N axis
-    for(let i = MinValueNegativeN; i <= MinValuePositiveN; i += iDivisionStepN) {
+    for (let i = -iDivisionStepN; i >= MinValueNegativeN; i -= iDivisionStepN) {
         bufferPoint = parseUnitInPixelCoord(0, i);
+        let ptText = {
+            x: bufferPoint.x - DivisionLineWidth * rScale,
+            y: bufferPoint.y
+        }
+        drawDivisionForAxisN(context, bufferPoint, DivisionLineWidth, i.toString(), ptText);
+    }
+    for (let i = 0; i <= MinValuePositiveN; i += iDivisionStepN) {
+        bufferPoint = parseUnitInPixelCoord(0, i);
+
         // Text division
         if(Math.abs(i) < rTolerance) {
             context.fillText(i.toString(), bufferPoint.x - DivisionLineWidth / 1.5 * rScale, bufferPoint.y);
             continue;
         }
 
-        context.beginPath();
-        context.moveTo(bufferPoint.x - DivisionLineWidth / 2.0, bufferPoint.y);
-        context.lineTo(bufferPoint.x + DivisionLineWidth / 2.0, bufferPoint.y);
-        context.stroke();
-
-        context.fillText(i.toString(), bufferPoint.x - DivisionLineWidth * rScale, bufferPoint.y);
+        let ptText = {
+            x: bufferPoint.x - DivisionLineWidth * rScale,
+            y: bufferPoint.y
+        }
+        drawDivisionForAxisN(context, bufferPoint, DivisionLineWidth, i.toString(), ptText);
     }
 
     //.............................................................................................
@@ -403,58 +429,116 @@ function drawCoordinateSystem() {
         context.stroke();
     }
     // N axis
-    for(let i = MinValueNegativeN; i <= MinValuePositiveN + iDivisionStepN; i += iDivisionStepN) {
-        if(Math.abs(i) < rTolerance)
-            continue;
+    for(let i = -iDivisionStepN; i >= MinValueNegativeN; i -= iDivisionStepN)
+        drawLineForAxisN(context, i);
+    for(let i = iDivisionStepN; i <= MinValuePositiveN + iDivisionStepN; i += iDivisionStepN)
+        drawLineForAxisN(context, i);
+}
 
-        bufferPoint = parseUnitInPixelCoord(0, i);
-        context.beginPath();
-        context.moveTo(bufferPoint.x, bufferPoint.y);
-        bufferPoint = parseUnitInPixelCoord(valueTOnScreen, i);
-        context.lineTo(bufferPoint.x, bufferPoint.y);
-        context.stroke();
-    }
+// Draws a separator and labels its value for the N axis
+function drawDivisionForAxisN(context, ptDivision, divisionLineWidth, strText, ptText) {
+    context.beginPath();
+    context.moveTo(ptDivision.x - divisionLineWidth / 2.0, ptDivision.y);
+    context.lineTo(ptDivision.x + divisionLineWidth / 2.0, ptDivision.y);
+    context.stroke();
+
+    context.fillText(strText, ptText.x, ptText.y);
+}
+
+// Draws lines for the grid for the N axis
+function drawLineForAxisN(context, nValue) {
+    let bufferPoint = parseUnitInPixelCoord(0, nValue);
+    context.beginPath();
+    context.moveTo(bufferPoint.x, bufferPoint.y);
+    bufferPoint = parseUnitInPixelCoord(valueTOnScreen, nValue);
+    context.lineTo(bufferPoint.x, bufferPoint.y);
+    context.stroke();
 }
 
 // Draws the calculated function, the quantized signal, and the difference
 // between the quantized signal and the function
-function drawQuantizedFunctions() {
+function drawQuantizedFunctions(iValueNegativeN, iValuePositiveN, iDivisionStepN, rMaxValueT) {
     if(quantizedFunction.functionPoints.length < 1
         || quantizedFunction.quantizedSignal.length < 1)
         return;
 
     let context = drawingPanelCanvas.getContext(`2d`);
     // let context = new CanvasRenderingContext2D();
-    context.strokeStyle = `#ae23ae`;
     context.lineWidth = 2;
     context.lineJoin = `miter`;
     context.setLineDash([]);
 
+    // Draws quantization levels
+    context.strokeStyle = `#232323`;
+    let rQuantizationStep = parseFloat(inputQuantizationStep.value);
+    for(let i = -rQuantizationStep; i >= iValueNegativeN; i -= rQuantizationStep)
+        drawLineForAxisN(context, i);
+    for(let i = rQuantizationStep; i <= iValuePositiveN; i += rQuantizationStep)
+        drawLineForAxisN(context, i);
+
+    //..................................................................................................................
+    // Draws functions
+
+    context.strokeStyle = `#ae23ae`;
     drawFunction(context, quantizedFunction.functionPoints);
 
-    context.strokeStyle = "#5aa216";
+    context.strokeStyle = `#5aa216`;
     drawFunction(context, quantizedFunction.quantizedSignal);
+
+    //..................................................................................................................
+
+    // Shades the difference between the function and the quantized signal
+    const iGradientSize = 1.5;
+    let iLengthFunctionPoints = quantizedFunction.functionPoints.length;
+
+    let rGradientStart = Math.trunc(parseUnitInPixelCoord(quantizedFunction.functionPoints[0]).x);
+    let rGradientEnd = parseUnitInPixelCoord(quantizedFunction.functionPoints[iLengthFunctionPoints - 1]).x;
+    let gradientValue = Math.trunc(rGradientEnd);
+    let gradient = context.createLinearGradient(rGradientStart, 0, gradientValue, gradientValue);
+
+    let iGradientNumber = rGradientEnd / (2 * iGradientSize)
+    let iGradientStep = 1.0 / iGradientNumber;
+
+    let iCounter = 0;
+    for(let i = 0; i <= 1; i += iGradientStep) {
+        if(iCounter % 2 === 0)
+            gradient.addColorStop(i, `rgba(36, 252, 120, 0.0)`);
+        else
+            gradient.addColorStop(i, `#24fc78`);
+        iCounter++;
+    }
+    gradient.addColorStop(1, `#24fc78`);
+    context.fillStyle = gradient;
+    context.strokeStyle = `black`;
+
+    context.beginPath();
+    drawFunction(context, quantizedFunction.functionPoints, false);
+    drawFunction(context, quantizedFunction.quantizedSignal, false, true, true);
+    context.fill();
 }
 
 // Draws array points in drawingCanvas
-function drawFunction(context, arrFunctionPoints) {
+function drawFunction(context, arrFunctionPoints, bStroke = true, bReverse = false, bContinue = false) {
     if(arrFunctionPoints === null || arrFunctionPoints.length === 0)
         return;
 
     let isFirstPoint = true;
-    context.beginPath();
-    for(let i = 0; i < arrFunctionPoints.length; i++) {
+    if(bStroke)
+        context.beginPath();
+    let iStartIndex = bReverse ? arrFunctionPoints.length - 1 : 0;
+    for(let i = iStartIndex; bReverse ? i >= 0 : i < arrFunctionPoints.length; bReverse ? i-- : i++) {
         let point = arrFunctionPoints[i];
 
         let ptCanvas = parseUnitInPixelCoord(point);
-        if(isFirstPoint) {
+        if(isFirstPoint && !bContinue) {
             isFirstPoint = false;
             context.moveTo(ptCanvas.x, ptCanvas.y);
         }
         else
             context.lineTo(ptCanvas.x, ptCanvas.y);
     }
-    context.stroke();
+    if(bStroke)
+        context.stroke();
 }
 
 // main:
@@ -488,4 +572,4 @@ window.addEventListener("resize", (e) => onResizeWindow(e.target));
 // Idle call to rebuild drawingCanvas
 onResizeWindow(window);
 
-buttonStartQuantization.addEventListener(`click`, event => OnStartQuantizationClicked(event));
+buttonStartQuantization.addEventListener(`click`, () => OnStartQuantizationClicked());
