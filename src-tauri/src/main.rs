@@ -12,9 +12,6 @@ async fn start_quantization(formula_type: FormulaType,
                       quantization_type: QuantizationType,
                       quantization_step: f64,
                       max_value_t: f64) -> Option<quantization_controller::QuantizationController> {
-    println!("formula_type: {:}\nvariable_x: {}\nvariable_b: {}\nquantization_type: {:}\nquantization_step: {}\nmax_value_t: {}",
-             format!("{:?}", formula_type), variable_k, variable_b, format!("{:?}", quantization_type), quantization_step, max_value_t);
-
     let mut quantization_controller = quantization_controller::QuantizationController::new(formula_type,
         variable_k, variable_b, quantization_type, quantization_step, max_value_t);
     quantization_controller.calc_function();
